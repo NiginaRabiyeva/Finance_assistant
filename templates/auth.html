@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card narrow">
+  <h2>{{ 'Регистрация' if mode == 'register' else 'Вход' }}</h2>
+  <form method="post">
+    {% if mode == 'register' %}<input name="name" placeholder="Имя" required>{% endif %}
+    <input name="email" type="email" placeholder="Email" required>
+    <input name="password" type="password" placeholder="Пароль (от 6 символов)" required>
+    <button>{{ 'Создать аккаунт' if mode == 'register' else 'Войти' }}</button>
+  </form>
+  <p>{% if mode == 'register' %}Уже есть аккаунт? <a href="{{ url_for('login') }}">Войти</a>
+     {% else %}Нет аккаунта? <a href="{{ url_for('register') }}">Регистрация</a>{% endif %}</p>
+</div>
+{% endblock %}

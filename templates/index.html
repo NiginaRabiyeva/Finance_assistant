@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="stats">
+  <div class="card"><small>Доходы (месяц)</small><b class="green">{{ '%.0f'|format(summary.income) }} ₸</b></div>
+  <div class="card"><small>Расходы (месяц)</small><b class="red">{{ '%.0f'|format(summary.expense) }} ₸</b></div>
+  <div class="card"><small>Баланс</small><b>{{ '%.0f'|format(summary.balance) }} ₸</b></div>
+</section>
+
+<section class="grid">
+  <div class="card">
+    <h3>Новая операция</h3>
+    <form method="post" action="{{ url_for('add_transaction') }}">
+      <select name="kind" id="kind">
+        <option value="expense">Расход</option><option value="income">Доход</option>
+      </select>
+      <select name="category" id="category"></select>
+      <input name="amount" placeholder="Сумма" required>
+      <input name="date" type="date" value="{{ today }}" required>
+      <input name="note" placeholder="Комментарий">
+      <button>Добавить</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Расходы по категориям</h3>
+    <canvas id="chart" height="200"></canvas>
+    {% if not summary.by_category %}<p class="muted">Пока нет расходов.</p>{% endif %}
+  </div>
+
+  <div class="card">
+    <h3>Цели накоплений</h3>
+    {% for g in goals %}
+      {% set pct = (g.saved / g.target * 100)|round|int if g.target else 0 %}
+      <div class="goal"><b>{{ g.title }}</b> - {{ '%.0f'|format(g.saved) }} / {{ '%.0f'|format(g.target) }} ₸
+        <div class="bar"><div style="width: {{ [pct,100]|min }}%"></div></div>
+        <form method="post" action="{{ url_for('goal_add', gid=g.id) }}" class="inline">
+          <input name="amount" placeholder="+ сумма"><button>Пополнить</button></form>
+      </div>
+    {% else %}<p class="muted">Целей пока нет.</p>{% endfor %}
+    <form method="post" action="{{ url_for('add_goal') }}" class="inline">
+      <input name="title" placeholder="Например, ноутбук"><input name="target" placeholder="Сумма" required>
+      <button>Создать цель</button></form>
+  </div>
+
+  <div class="card">
+    <h3>🤖 AI-помощник</h3>
+    <div id="chat"><div class="msg bot">Привет! Спросите про баланс, расходы, цели или попросите совет.</div></div>
+    <form id="chat-form" class="inline"><input id="chat-input" placeholder="Ваш вопрос..." autocomplete="off"><button>Отправить</button></form>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Последние операции</h3>
+  <table>
+    {% for t in txs %}
+    <tr><td>{{ t.date }}</td><td>{{ t.category }}</td><td>{{ t.note or '' }}</td>
+      <td class="{{ 'green' if t.kind == 'income' else 'red' }}">{{ '+' if t.kind == 'income' else '-' }}{{ '%.2f'|format(t.amount) }}</td>
+      <td><form method="post" action="{{ url_for('delete_transaction', tid=t.id) }}"><button class="link">✕</button></form></td></tr>
+    {% else %}<tr><td class="muted">Операций пока нет.</td></tr>{% endfor %}
+  </table>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+  window.CATEGORIES = {{ categories|tojson }};
+  window.BY_CAT = {{ summary.by_category|tojson }};
+</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

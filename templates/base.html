@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Финансовый помощник</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>💰 Финансовый помощник</h1>
+    {% if current_user.is_authenticated %}
+      <span>{{ current_user.name }} · <a href="{{ url_for('logout') }}">Выйти</a></span>
+    {% endif %}
+  </header>
+  <main>
+    {% for m in get_flashed_messages() %}<div class="flash">{{ m }}</div>{% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
